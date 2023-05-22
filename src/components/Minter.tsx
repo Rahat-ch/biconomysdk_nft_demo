@@ -1,18 +1,25 @@
 import React, { useState, useEffect } from "react";
-import { ethers } from "ethers";
+import { BigNumber, ethers } from "ethers";
 import abi from "../utils/abi.json";
 import SmartAccount from "@biconomy/smart-account";
+import '../App.css'
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 interface Props {
     smartAccount: SmartAccount
     provider: any
-    acct: any
+    loading: boolean
   }
 
-const Minter:React.FC<Props> = ({ smartAccount, provider, acct}) => {
+const Minter:React.FC<Props> = ({ smartAccount, provider, loading}) => {
     const [nftContract, setNFTContract] = useState<any>(null)
     const [nftCount, setNFTCount] = useState<number>(0);
     const nftAddress = import.meta.env.VITE_NFT_CONTRACT_ADDRESS;
+
+    if(loading) {
+        return <div />
+    }
 
     useEffect(() => {
         getNFTCount()
@@ -31,6 +38,16 @@ const Minter:React.FC<Props> = ({ smartAccount, provider, acct}) => {
 
     const mintNFT = async () => {
         try {
+            const infoToast = toast.info('Minting your NFT...', {
+                position: "top-right",
+                autoClose: 25000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true,
+                progress: undefined,
+                theme: "dark",
+                });
             const mintTx = await nftContract.populateTransaction.mint()
             const tx1 = {
             to: nftAddress,
@@ -40,32 +57,31 @@ const Minter:React.FC<Props> = ({ smartAccount, provider, acct}) => {
 
             const txHash = await txResponse.wait();
             console.log({txHash})
-            console.log({txResponse})
+            
             getNFTCount()
+            toast.dismiss(infoToast)
+            toast.success('Your NFT has been minted!', {
+                position: "top-right",
+                autoClose: 15000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true,
+                progress: undefined,
+                theme: "dark",
+                });
         } catch (error) {
             console.log(error)
-        }
-    }
-
-    const mintMultipleNFT = async () => {
-        try {
-            const mintTx = await nftContract.populateTransaction.mint()
-            const tx1 = {
-            to: nftAddress,
-            data: mintTx.data,
-            }
-            const tx2 = {
-                to: nftAddress,
-                data: mintTx.data,
-                }
-            const txResponse = await smartAccount.sendTransactionBatch({ transactions: [tx1, tx2]})
-
-            const txHash = await txResponse.wait();
-            console.log({txHash})
-            console.log({txResponse})
-            getNFTCount()
-        } catch (error) {
-            console.log(error)
+            toast.error('error occured check the console', {
+                position: "top-right",
+                autoClose: 25000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true,
+                progress: undefined,
+                theme: "dark",
+                });
         }
     }
 
@@ -73,10 +89,21 @@ const Minter:React.FC<Props> = ({ smartAccount, provider, acct}) => {
 
     return(
         <div>
-            <button onClick={() => mintNFT()}>Mint One</button>
-            <button onClick={() => mintMultipleNFT()}>Mint Two</button>
+            <ToastContainer
+            position="top-right"
+            autoClose={5000}
+            hideProgressBar={true}
+            newestOnTop={false}
+            closeOnClick
+            rtl={false}
+            pauseOnFocusLoss
+            draggable
+            pauseOnHover
+            theme="dark"
+        />
+            <button className='demoButton' onClick={() => mintNFT()}>Mint NFT</button>
             {nftCount ? (<p>You own {nftCount} tickets </p>): null}
-            {nftCount ? (<p>View your NFTs <a href={nftURL} target="_blank">here</a> </p>): null}
+            {nftCount ? (<p>View your NFTs <a className="viewNFT" href={nftURL} target="_blank">here</a> </p>): null}
         </div>
     )
 };

@@ -6,6 +6,7 @@ import { ChainId } from "@biconomy/core-types";
 import { ethers } from 'ethers'
 import SmartAccount from "@biconomy/smart-account";
 import Minter from './components/Minter';
+import Spinner from './components/Spinner';
 
 
 export default function App() {
@@ -14,7 +15,6 @@ export default function App() {
   const sdkRef = useRef<SocialLogin | null>(null)
   const [loading, setLoading] = useState<boolean>(false)
   const [provider, setProvider] = useState<any>(null);
-  const [acct, setAcct] = useState<any>(null);
 
   useEffect(() => {
     let configureLogin:any
@@ -69,8 +69,14 @@ export default function App() {
         ],
       })
       const acct = await smartAccount.init()
-      setAcct(acct)
-      setSmartAccount(smartAccount)
+      console.log({ deployed: await smartAccount.isDeployed(ChainId.POLYGON_MUMBAI)})
+      const isDeployed = await smartAccount.isDeployed(ChainId.POLYGON_MUMBAI)
+      if (isDeployed == false) {
+        console.log("this one needs to be deployed")
+        const deployTx = await smartAccount.deployWalletUsingPaymaster()
+        console.log(deployTx);
+      }
+      setSmartAccount(acct)
       setLoading(false)
     } catch (err) {
       console.log('error setting up smart account... ', err)
@@ -88,33 +94,38 @@ export default function App() {
     enableInterval(false)
   }
 
-  console.log({ acct , provider})
-
   return (
     <div>
-      <h1>Biconomy SDK Auth + Gasless NFT Example</h1>
+      <h1>Onboard to Account Abstraction</h1>
+      <p>Connect and mint an NFT, no wallet or gas neccasary to get started.</p>
+      <p>Click and deploy a Smart Account - then mint </p>
       {
-        !smartAccount && !loading && <button onClick={login}>Login</button>
+        !smartAccount && !loading && <button className='demoButton' onClick={login}>Login</button>
       }
       {
-        loading && <p>Loading account details...</p>
+        loading && (
+          <div>
+            <p>Creating your Smart Account...</p>
+            <Spinner />
+          </div>
+        )
       }
       {
         !!smartAccount && (
           <div className="buttonWrapper">
             <h3>Smart account address:</h3>
             <p>{smartAccount.address}</p>
-            <Minter smartAccount={smartAccount} provider={provider} acct={acct} />
-            <button onClick={logout}>Logout</button>
+            <Minter smartAccount={smartAccount} provider={provider} loading={loading} />
+            <button className='demoButton' onClick={logout}>Logout</button>
           </div>
         )
       }
-      <p>
-      Edit <code>src/App.tsx</code> and save to test
-      </p>
+      <br />
+      <div className='linkWrapper'>
       <a href="https://docs.biconomy.io/introduction/overview" target="_blank" className="read-the-docs">
-  Click here to check out the docs
+  Click here to learn more about the Biconomy SDK
     </a>
+    </div>
     </div>
   )
 }

@@ -38,5 +38,29 @@
 }
 
 .read-the-docs {
-  color: #888;
+  color: #884c30;
+}
+
+.linkWrapper {
+  margin-top: 15px;
+}
+
+.read-the-docs:hover {
+  color: #b84814;
+  transition: 0.7s;
+}
+
+.demoButton {
+  background-color: #884c30;
+  color: #fff;
+  margin-bottom: 5px;
+}
+
+.demoButton:hover{
+  background-color: #b84814;
+  transition: 0.7s;
+}
+
+.viewNFT {
+  color: #b84814;
 }
